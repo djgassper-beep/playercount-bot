@@ -19,22 +19,34 @@ async function updatePlayerCount() {
   try {
     const res = await fetch('https://cdn.rage.mp/master/');
     const json = await res.json();
-     const data = json.servers;
 
+    const data = json.servers; // ✅ FIXED
+
+    if (!data) {
+      console.log('❌ No server data returned');
+      return;
+    }
 
     const server = data.find(s => s.ip === SERVER_IP);
 
     if (!server) {
-      console.log('Server not found');
+      console.log('❌ Server not found in RageMP list');
       return;
     }
 
     const channel = await client.channels.fetch(CHANNEL_ID);
 
-    await channel.setName(`👥 Players: ${server.players}/${server.maxplayers}`);
-    console.log(`Updated: ${server.players}/${server.maxplayers}`);
-  } catch (err) {
-    console.error(err);
+    if (!channel) {
+      console.log('❌ Channel not found');
+      return;
+    }
+
+    const newName = `👥 Players: ${server.players}/${server.maxplayers}`;
+    await channel.setName(newName);
+
+    console.log(`✅ Updated: ${newName}`);
+  } catch (error) {
+    console.error('❌ Error:', error);
   }
 }
 
