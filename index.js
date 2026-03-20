@@ -5,7 +5,7 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-const CHANNEL_ID = '1484316636780564600';
+const CHANNEL_ID = '1484506212132458567';
 const SERVER_IP = '179.61.132.132:22005';
 
 client.once('ready', () => {
