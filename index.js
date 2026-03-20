@@ -8,7 +8,7 @@ const client = new Client({
 const CHANNEL_ID = '1484506212132458567';
 const SERVER_IP = '77.221.92.217:22005';
 
-client.once('ready', () => {
+client.once('clientReady', () => {
   console.log(`Logged in as ${client.user.tag}`);
   updatePlayerCount();
 
