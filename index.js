@@ -7,7 +7,7 @@ const client = new Client({
 
 // 🔧 CONFIG (YOUR VALUES)
 const CHANNEL_ID = '1484506212132458567';
-const SERVER_IP = '77.221.92.217:22005';
+const SERVER_IP = '179.61.132.132:22005';
 
 client.once('clientReady', () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
