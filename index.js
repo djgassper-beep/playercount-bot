@@ -1,44 +1,62 @@
 const { Client, GatewayIntentBits } = require('discord.js');
-const fetch = require('node-fetch');
+const express = require('express');
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-// 🔧 CONFIG (YOUR VALUES)
-const CHANNEL_ID = '1484506212132458567';
-const SERVER_IP = '179.61.132.132:22005';
+const app = express();
+app.use(express.json());
 
-client.once('clientReady', () => {
+// CONFIG
+const CHANNEL_ID = '1484568602450333726';
+const PORT = process.env.PORT || 3000;
+const API_KEY = process.env.API_KEY;
+
+// Stores latest player count sent from your RageMP server
+let currentPlayers = 0;
+let maxPlayers = 50;
+
+// Discord bot ready
+client.once('clientReady', async () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 
-  updatePlayerCount();
-  setInterval(updatePlayerCount, 60000); // every 60 seconds
+  // Update once on startup
+  await updateDiscordChannel();
+
+  // Optional safety refresh every minute
+  setInterval(updateDiscordChannel, 60000);
 });
 
-async function updatePlayerCount() {
+// Simple protected endpoint your RageMP server can call
+app.post('/update-player-count', async (req, res) => {
   try {
-    // 🔄 Fetch RageMP server list
-    const res = await fetch('https://cdn.rage.mp/master/');
-    const json = await res.json();
+    const authHeader = req.headers.authorization;
 
-    // ✅ Handle both possible formats (array or object)
-    const data = Array.isArray(json) ? json : json.servers;
-
-    if (!data) {
-      console.log('❌ No server data returned');
-      return;
+    if (!authHeader || authHeader !== `Bearer ${API_KEY}`) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // 🔍 Find your server by IP
-    const server = data.find(s => s.ip === SERVER_IP);
+    const { players, maxplayers } = req.body;
 
-    if (!server) {
-      console.log('❌ Server not found in RageMP list');
-      return;
+    if (typeof players !== 'number' || typeof maxplayers !== 'number') {
+      return res.status(400).json({ error: 'Invalid payload' });
     }
 
-    // 📡 Fetch channel
+    currentPlayers = players;
+    maxPlayers = maxplayers;
+
+    await updateDiscordChannel();
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('❌ API update error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+async function updateDiscordChannel() {
+  try {
     const channel = await client.channels.fetch(CHANNEL_ID);
 
     if (!channel) {
@@ -46,15 +64,28 @@ async function updatePlayerCount() {
       return;
     }
 
-    // 🔄 Update channel name
-    const newName = `👥 Players: ${server.players}/${server.maxplayers}`;
-    await channel.setName(newName);
+    const newName = `👥 Players: ${currentPlayers}/${maxPlayers}`;
 
-    console.log(`✅ Updated player count: ${newName}`);
+    if (channel.name !== newName) {
+      await channel.setName(newName);
+      console.log(`✅ Updated channel to: ${newName}`);
+    } else {
+      console.log(`ℹ️ Channel already up to date: ${newName}`);
+    }
   } catch (error) {
-    console.error('❌ Error updating player count:', error);
+    console.error('❌ Discord update error:', error);
   }
 }
 
-// 🔐 Login
+// Health route for Railway
+app.get('/', (req, res) => {
+  res.send('Bot is running');
+});
+
+// Start web server
+app.listen(PORT, () => {
+  console.log(`🌐 Web server listening on port ${PORT}`);
+});
+
+// Login bot
 client.login(process.env.TOKEN);
