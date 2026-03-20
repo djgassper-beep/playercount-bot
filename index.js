@@ -20,7 +20,7 @@ async function updatePlayerCount() {
     const res = await fetch('https://cdn.rage.mp/master/');
     const json = await res.json();
 
-    const data = json.servers; // ✅ FIXED
+    const data = Array.isArray(json) ? json : json.servers;
 
     if (!data) {
       console.log('❌ No server data returned');
@@ -35,11 +35,6 @@ async function updatePlayerCount() {
     }
 
     const channel = await client.channels.fetch(CHANNEL_ID);
-
-    if (!channel) {
-      console.log('❌ Channel not found');
-      return;
-    }
 
     const newName = `👥 Players: ${server.players}/${server.maxplayers}`;
     await channel.setName(newName);
