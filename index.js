@@ -18,7 +18,9 @@ client.once('clientReady', () => {
 async function updatePlayerCount() {
   try {
     const res = await fetch('https://cdn.rage.mp/master/');
-    const data = await res.json();
+    const json = await res.json();
+     const data = json.servers;
+
 
     const server = data.find(s => s.ip === SERVER_IP);
 
