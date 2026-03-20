@@ -6,7 +6,7 @@ const client = new Client({
 });
 
 const CHANNEL_ID = '1484506212132458567';
-const SERVER_IP = '179.61.132.132:22005';
+const SERVER_IP = '77.221.92.217:22005';
 
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
@@ -17,7 +17,7 @@ client.once('ready', () => {
 
 async function updatePlayerCount() {
   try {
-    const res = await fetch('https://api.rage.mp/servers');
+    const res = await fetch('https://cdn.rage.mp/master/');
     const data = await res.json();
 
     const server = data.find(s => s.ip === SERVER_IP);
