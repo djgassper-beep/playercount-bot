@@ -19,6 +19,7 @@ async function updatePlayerCount() {
   try {
     const res = await fetch('https://cdn.rage.mp/master/');
     const json = await res.json();
+    console.log(json);
 
     const data = Array.isArray(json) ? json : json.servers;
 
